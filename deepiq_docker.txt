@@ -1,0 +1,61 @@
+version: '3.1'
+
+services:
+
+  datastudio2_UI:
+    image: deepiq/platform:ui_prod_v53
+    restart: unless-stopped
+    container_name: ds2_0_ui
+    ports:
+      - 100:80
+      - 495:443
+
+  datastudio2_backend:
+    image: deepiq/platform:platform_api_v54
+    restart: unless-stopped
+    container_name: ds2_0_platformbackend
+    volumes:
+      - /data1/datastudio2/spark-jars/:/home/deepiq/datastudio/spark-jars
+      - /data1/datastudio2/:/home/deepiq/datastudio
+      - /data1/datastudio2/files/templates/:/home/deepiq/datastudio/files/templates
+      - /tmp/datastudio_logs/:/tmp/datastudio_logs
+      - /data1/datastudio2/filesystem/:/home/deepiq/datastudio/filesystem
+      - /data1/datastudio2/livy/apache-livy/bulk_files/:/home/deepiq/datastudio/livy/apache-livy/bulk_files
+    ports:
+      - 4545:8087
+    env_file:
+      - /data1/datastudio2/files/datastudio.env
+
+  livy_backend_dev:
+    image: deepiq/platform:livy_api_v13
+    restart: unless-stopped
+    container_name: ds2_0_livy_backend_dev
+    volumes:
+      - /tmp/spark_batch_scripts/:/tmp/spark_batch_scripts
+      - /tmp/livy_logs/:/tmp/livy_logs
+    ports:
+      - 4549:8082
+    env_file:
+      - /data1/datastudio2/files/livy.env
+  mysql:
+    image: mysql:5.7
+    restart: unless-stopped
+    container_name: ds2_0_mysql
+    volumes:
+      - /data1/datastudio2/mysql:/var/lib/mysql
+    ports:
+      - 3308:3306
+    environment:
+	  - MYSQL_ROOT_PASSWORD:
+
+  mongodb:
+    image: mongo
+    restart: unless-stopped
+    container_name: ds2_0_mongodb
+    volumes:
+	  - /data1/datastudio2/mongo:/data/db
+    ports:
+      - 27019:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME:mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=root
